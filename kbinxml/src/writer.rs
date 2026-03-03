@@ -246,7 +246,10 @@ impl Writeable for NodeCollection {
             write_value(options, data_buf, node_type, is_array, &value)?;
         }
 
-        for attr in self.attributes() {
+        let mut sorted_attrs: Vec<&crate::node::NodeDefinition> = self.attributes().iter().collect();
+        sorted_attrs.sort_by_cached_key(|attr| attr.key().ok().flatten().unwrap_or_default());
+
+        for attr in sorted_attrs {
             let node_type = StandardType::Attribute;
             let key = attr
                 .key()
@@ -354,7 +357,10 @@ impl Writeable for Node {
             write_value(options, data_buf, node_type, is_array, value)?;
         }
 
-        for (key, value) in self.attributes() {
+        let mut sorted_attrs: Vec<(&String, &String)> = self.attributes().iter().collect();
+        sorted_attrs.sort_by_key(|(k, _)| k.as_str());
+
+        for (key, value) in sorted_attrs {
             trace!("Node write_node => attr: {}, value: {}", key, value);
 
             data_buf
