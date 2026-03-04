@@ -1,6 +1,5 @@
-use std::borrow::Cow;
 use std::num::ParseIntError;
-use std::str::{self, Utf8Error};
+use std::str::Utf8Error;
 
 use bytes::{BufMut, Bytes, BytesMut};
 use quick_xml::events::attributes::Attributes;
@@ -139,13 +138,7 @@ impl<'a> TextXmlReader<'a> {
         for attr in attrs {
             match attr {
                 Ok(attr) => {
-                    let value = match attr.unescape_value() {
-                        Ok(v) => v,
-                        Err(e) => {
-                            error!("Error decoding attribute value: {:?}", e);
-                            Cow::Borrowed(str::from_utf8(&attr.value)?)
-                        },
-                    };
+                    let value = attr.decode_and_unescape_value(&self.xml_reader)?;
 
                     if attr.key == QName(b"__type") {
                         node_type =
